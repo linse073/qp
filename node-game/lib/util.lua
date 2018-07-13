@@ -42,10 +42,11 @@ function util.clone(t)
 end
 
 function util.empty(t)
-    for k, v in pairs(t) do
-        return false
-    end
-    return true
+	return next(t) == nil
+    -- for k, v in pairs(t) do
+        -- return false
+    -- end
+    -- return true
 end
 
 function util.reverse(t)

@@ -19,7 +19,7 @@ local function search(dir)
 	return content
 end
 local sp = parser.parse(search(dir))
-local fd = io.open(dir .. "/proto.spb", "w")
+local fd = io.open(dir .. "/all.spb", "w")
 fd:write(sp)
 fd:close()
-print("write file: proto.spb")
+print("write file: all.spb")
