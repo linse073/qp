@@ -7,6 +7,7 @@ local name_msg = {
 	chess_info = 1006,
 	chess_all = 1007,
 	record_info = 1008,
+	test = 1088,
 	chess_record = 1009,
 	record_all = 1010,
 	get_club_user_record = 1011,

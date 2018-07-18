@@ -123,6 +123,9 @@
     club 5 : integer
 }
 
+.test {
+}
+
 .chess_record {
     .record_detail {
         id 0 : integer
