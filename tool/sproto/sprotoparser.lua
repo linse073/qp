@@ -485,4 +485,15 @@ function sparser.parse(text, name)
 	return data
 end
 
+function sparser.parse_1(text, name)
+	local state = { file = name or "=text", pos = 0, line = 1 }
+	local r = lpeg.match(proto * -1 + exception , text , 1, state )
+	local data = encodeall(flattypename(check_protocol(adjust(r))))
+    local t = {}
+	for _, obj in ipairs(r) do
+        t[#t+1] = obj[1]
+	end
+    return data, t
+end
+
 return sparser
