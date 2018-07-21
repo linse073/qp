@@ -3,10 +3,8 @@ local util = require "util"
 local sharedata = require "skynet.sharedata"
 
 local assert = assert
-local ipairs = ipairs
 local type = type
-local tonumber = tonumber
-local string = string
+local os = os
 local base
 local error_code
 local day_second = 24 * 60 * 60
@@ -43,7 +41,6 @@ function func.return_msg(ok, msg, info)
     return msg, info
 end
 
-
 function func.poker_info(c)
     local tc = (c - 1) % base.PBJ_WILDCARD_RATE
     return tc//base.POKER_VALUE+1, tc%base.POKER_VALUE+1
@@ -76,11 +73,7 @@ function func.sort_poker_color(l, r)
 end
 
 function func.p13_special_score(i)
-    local s = base.P13_SPECIAL_SCORE[i]
-    if s then
-        return s
-    end
-    return 6
+	return base.P13_SPECIAL_SCORE[i] or 6
 end
 
 function func.is_today(datetime)

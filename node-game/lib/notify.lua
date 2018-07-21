@@ -62,10 +62,4 @@ function notify.add(msg, content)
     end
 end
 
-function notify.exit()
-    if notify_coroutine then
-        notify.add("logout", {})
-    end
-end
-
 return notify

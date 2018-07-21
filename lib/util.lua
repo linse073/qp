@@ -4,7 +4,6 @@ local skynet = require "skynet"
 local pairs = pairs
 local ipairs = ipairs
 local type = type
-local print = print
 local tonumber = tonumber
 local string = string
 local table = table
@@ -43,10 +42,6 @@ end
 
 function util.empty(t)
 	return next(t) == nil
-    -- for k, v in pairs(t) do
-        -- return false
-    -- end
-    -- return true
 end
 
 function util.reverse(t)
@@ -99,12 +94,6 @@ end
 
 function util.sign(t, secret)
     return b64encode(hmac_hash(secret, to_string(t)))
-end
-
-function util.update_user()
-    return {
-        user = {},
-    }
 end
 
 function util.ltrim(input)
