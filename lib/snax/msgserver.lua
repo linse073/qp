@@ -113,6 +113,8 @@ function server.login(username, secret)
 		index = 0,
 		username = username,
 		response = {},	-- response cache
+        msg = "",
+        unresponse = {},
 	}
 end
 
@@ -134,6 +136,27 @@ function server.start(conf)
 		kick = assert(conf.kick_handler),
         shutdown = assert(conf.shutdown_handler),
 	}
+
+    function CMD.notify(username, msg)
+        local u = user_online[username]
+        if u and u.fd then
+            u.msg = u.msg .. msg
+            local session = table.remove(u.unresponse, 1)
+            if session then
+                local p = u.response[session]
+
+				result = result .. string.pack(">BI4", 1, session)
+                p[2] = string.pack(">s2",result)
+
+                local fd = p[1]
+                if connection[fd] then
+                    socketdriver.send(fd, p[2])
+                end
+                p[1] = nil
+                retire_response(u)
+            end
+        end
+    end
 
 	function handler.command(cmd, source, ...)
 		local f = assert(CMD[cmd])
