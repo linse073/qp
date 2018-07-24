@@ -18,14 +18,14 @@ return function(modules)
 			end
 		end
 	end
-	_M.init = function(d)
+	_M.init = function(...)
 		for k, v in ipairs(init) do
-			v(d)
+			v(...)
 		end
 	end
-	_M.finish = function()
+	_M.finish = function(...)
 		for k, v in ipairs(finish) do
-			v()
+			v(...)
 		end
 	end
 

@@ -938,12 +938,12 @@ function dymj:consume_card()
         if rule.aa_pay then
             local count = -rule.single_card
             for k, v in ipairs(self._role) do
-                skynet.call(offline_mgr, "lua", "add", v.id, "role", "add_room_card", count)
+                skynet.call(offline_mgr, "lua", "add", v.id, "add_room_card", count)
             end
         else
             local id = self._role[1].id
             local count = -rule.total_card
-            skynet.call(offline_mgr, "lua", "add", id, "role", "add_room_card", count)
+            skynet.call(offline_mgr, "lua", "add", id, "add_room_card", count)
         end
     end
 

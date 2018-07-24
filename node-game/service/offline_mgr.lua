@@ -1,32 +1,27 @@
 local skynet = require "skynet"
 local queue = require "skynet.queue"
-local util = require "util"
 
-local ipairs = ipairs
 local assert = assert
-local tonumber = tonumber
-local pack = table.pack
-local unpack = table.unpack
+local table = table
 
 local offline_db
 local user_db
 local role_mgr
 local cs = queue()
-local update_user = util.update_user
 
 local CMD = {}
 
-local function add(id, module, func, ...)
+local function add(id, func, ...)
     local agent = skynet.call(role_mgr, "lua", "get", id)
     if agent then
-        skynet.send(agent, "lua", "action", module, func, update_user(), true, ...)
+        skynet.send(agent, "lua", "action", func, true, ...)
     else
-        skynet.send(offline_db, "lua", "update", {id=id}, {["$push"]={data={module, func, false, ...}}}, true)
+        skynet.send(offline_db, "lua", "update", {id=id}, {["$push"]={data={func, false, ...}}}, true)
     end
 end
 
-local function offline(id, module, func, ...)
-    skynet.send(offline_db, "lua", "update", {id=id}, {["$push"]={data={module, func, false, ...}}}, true)
+local function offline(id, func, ...)
+    skynet.send(offline_db, "lua", "update", {id=id}, {["$push"]={data={func, false, ...}}}, true)
 end
 
 local function get(id)
@@ -37,19 +32,19 @@ local function get(id)
     end
 end
 
-function CMD.broadcast(module, func, ...)
-    local arg = pack(...)
+function CMD.broadcast(func, ...)
+    local arg = table.pack(...)
     util.mongo_find(user_db, function(r)
-        cs(add, r.id, module, func, unpack(arg))
+        cs(add, r.id, func, table.unpack(arg))
     end, nil, {id=true, _id=false})
 end
 
-function CMD.add(id, module, func, ...)
-    cs(add, id, module, func, ...)
+function CMD.add(id, func, ...)
+    cs(add, id, func, ...)
 end
 
-function CMD.offline(id, module, func, ...)
-    cs(offline, id, module, func, ...)
+function CMD.offline(id, func, ...)
+    cs(offline, id, func, ...)
 end
 
 function CMD.get(id)
