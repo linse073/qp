@@ -137,27 +137,6 @@ function server.start(conf)
         shutdown = assert(conf.shutdown_handler),
 	}
 
-    function CMD.notify(username, msg)
-        local u = user_online[username]
-        if u and u.fd then
-            u.msg = u.msg .. msg
-            local session = table.remove(u.unresponse, 1)
-            if session then
-                local p = u.response[session]
-
-				result = result .. string.pack(">BI4", 1, session)
-                p[2] = string.pack(">s2",result)
-
-                local fd = p[1]
-                if connection[fd] then
-                    socketdriver.send(fd, p[2])
-                end
-                p[1] = nil
-                retire_response(u)
-            end
-        end
-    end
-
 	function handler.command(cmd, source, ...)
 		local f = assert(CMD[cmd])
 		return f(...)
@@ -260,6 +239,32 @@ function server.start(conf)
 		end
 	end
 
+    local MAX_LEN = 65000
+    function CMD.notify(username, msg)
+        local u = user_online[username]
+        if u and u.fd then
+            local m = u.msg .. msg
+            repeat
+                local session = table.remove(u.unresponse, 1)
+                if not session then
+                    break
+                end
+                local tmp
+                tmp, m = m:sub(1, MAX_LEN), m:sub(MAX_LEN+1)
+				tmp = tmp .. string.pack(">BI4", 1, session)
+                local p = u.response[session]
+                p[2] = string.pack(">s2", tmp)
+                local fd = p[1]
+                if connection[fd] then
+                    socketdriver.send(fd, p[2])
+                end
+                p[1] = nil
+                retire_response(u)
+            until m == ""
+            u.msg = m
+        end
+    end
+
 	local function do_request(fd, message)
 		local u = assert(connection[fd], "invalid fd")
 		local session = string.unpack(">I4", message, -4)
@@ -284,15 +289,15 @@ function server.start(conf)
 			u.response[session] = p
 			local ok, result = pcall(conf.request_handler, u.username, message)
 			-- NOTICE: YIELD here, socket may close.
-			result = result or ""
+			-- result = result or ""
 			if not ok then
 				skynet.error(result)
-				result = string.pack(">BI4", 0, session)
-			else
-				result = result .. string.pack(">BI4", 1, session)
+				-- result = string.pack(">BI4", 0, session)
+			-- else
+				-- result = result .. string.pack(">BI4", 1, session)
 			end
 
-			p[2] = string.pack(">s2",result)
+			-- p[2] = string.pack(">s2",result)
 			p[3] = u.version
 			p[4] = u.index
 		else
@@ -308,12 +313,12 @@ function server.start(conf)
 		end
 		u.index = u.index + 1
 		-- the return fd is p[1] (fd may change by multi request) check connect
-		fd = p[1]
-		if connection[fd] then
-			socketdriver.send(fd, p[2])
-		end
-		p[1] = nil
-		retire_response(u)
+		-- fd = p[1]
+		-- if connection[fd] then
+		-- 	socketdriver.send(fd, p[2])
+		-- end
+		-- p[1] = nil
+		-- retire_response(u)
 	end
 
 	local function request(fd, msg, sz)
