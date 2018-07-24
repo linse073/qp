@@ -23,14 +23,14 @@ function timer.add_routine(key, func, interval)
     key = gen_key(key)
     assert(not routine_list[key], string.format("Already has routine %s.", key))
     routine_list[key] = func
-    skynet.call(routine, "lua", "add", skynet.self(), key, interval)
+    skynet.send(routine, "lua", "add", skynet.self(), key, interval)
 end
 
 function timer.del_routine(key)
     key = gen_key(key)
     if routine_list[key] then
         routine_list[key] = nil
-        skynet.call(routine, "lua", "del", key)
+        skynet.send(routine, "lua", "del", key)
     end
 end
 
@@ -42,14 +42,14 @@ function timer.add_once_routine(key, func, interval)
     key = gen_key(key)
     assert(not once_routine_list[key], string.format("Already has once routine %s.", key))
     once_routine_list[key] = func
-    skynet.call(routine, "lua", "add_once", skynet.self(), key, interval)
+    skynet.send(routine, "lua", "add_once", skynet.self(), key, interval)
 end
 
 function timer.del_once_routine(key)
     key = gen_key(key)
     if once_routine_list[key] then
         once_routine_list[key] = nil
-        skynet.call(routine, "lua", "del_once", key)
+        skynet.send(routine, "lua", "del_once", key)
     end
 end
 
@@ -63,14 +63,14 @@ function timer.add_day_routine(key, func)
     key = gen_key(key)
     assert(not day_routine_list[key], string.format("Already has day routine %s.", key))
     day_routine_list[key] = func
-    skynet.call(routine, "lua", "add_day", skynet.self(), key)
+    skynet.send(routine, "lua", "add_day", skynet.self(), key)
 end
 
 function timer.del_day_routine(key)
     key = gen_key(key)
     if day_routine_list[key] then
         day_routine_list[key] = nil
-        skynet.call(routine, "lua", "del_day", key)
+        skynet.send(routine, "lua", "del_day", key)
     end
 end
 
@@ -82,14 +82,14 @@ function timer.add_second_routine(key, func)
     key = gen_key(key)
     assert(not second_routine_list[key], string.format("Already has second routine %s.", key))
     second_routine_list[key] = func
-    skynet.call(routine, "lua", "add_second", skynet.self(), key)
+    skynet.send(routine, "lua", "add_second", skynet.self(), key)
 end
 
 function timer.del_second_routine(key)
     key = gen_key(key)
     if second_routine_list[key] then
         second_routine_list[key] = nil
-        skynet.call(routine, "lua", "del_second", key)
+        skynet.send(routine, "lua", "del_second", key)
     end
 end
 

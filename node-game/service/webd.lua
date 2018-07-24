@@ -45,7 +45,7 @@ if mode == "agent" then
             local id = tonumber(q.id)
             local info = skynet.call(role_mgr, "lua", "get_info", id)
             if info then
-                skynet.call(offline_mgr, "lua", "add", id, "role", "add_room_card", tonumber(q.card))
+                skynet.send(offline_mgr, "lua", "add", id, "role", "add_room_card", tonumber(q.card))
                 return {ret="OK"}
             else
                 return {error="no player"}
@@ -55,7 +55,7 @@ if mode == "agent" then
             local id = tonumber(q.id)
             local info = skynet.call(role_mgr, "lua", "get_info", id)
             if info then
-                skynet.call(offline_mgr, "lua", "add", id, "role", "charge", q)
+                skynet.send(offline_mgr, "lua", "add", id, "role", "charge", q)
 
                 local cashFee = tonumber(q.cashFee)
                 skynet.send(activity_mgr, "lua", "pay", {id},cashFee)
@@ -68,7 +68,7 @@ if mode == "agent" then
             local id = tonumber(q.id)
             local info = skynet.call(role_mgr, "lua", "get_info", id)
             if info then
-                skynet.call(offline_mgr, "lua", "add", id, "role", "unlink")
+                skynet.send(offline_mgr, "lua", "add", id, "role", "unlink")
                 return {ret="OK"}
             else
                 return {error="no player"}

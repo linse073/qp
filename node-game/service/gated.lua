@@ -40,6 +40,7 @@ function server.login_handler(info)
 	-- trash subid (no used)
 	info.gate = skynet.self()
 	info.subid = sid
+    info.username = username
 	skynet.call(agent, "lua", "login", info)
 
 	users[id] = u
@@ -77,8 +78,12 @@ function server.kick_handler(id)
 end
 
 function server.shutdown_handler()
+    local agents = {}
     for k, v in pairs(users) do
-        skynet.call(v.agent, "lua", "logout")
+        agents[#agents+1] = v.agent
+    end
+    for k, v in ipairs(agents) do
+        skynet.call(v, "lua", "logout")
     end
 end
 
@@ -86,7 +91,7 @@ end
 function server.disconnect_handler(username)
 	local u = username_map[username]
 	if u then
-		skynet.call(u.agent, "lua", "afk")
+		skynet.send(u.agent, "lua", "afk")
 	end
 end
 
@@ -94,7 +99,7 @@ function server.connect_handler(username, addr)
     local u = username_map[username]
     if u then
         addr = addr:match("^(.*):")
-        skynet.call(u.agent, "lua", "btk", addr)
+        skynet.send(u.agent, "lua", "btk", addr)
     end
 end
 
@@ -102,7 +107,6 @@ end
 function server.request_handler(username, msg)
 	local u = username_map[username]
     skynet.send(u.agent, "client", msg)
-	-- return skynet.tostring(skynet.rawcall(u.agent, "client", msg))
 end
 
 -- call by self (when gate open)

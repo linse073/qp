@@ -23,8 +23,6 @@ local sproto
 local error_code
 local cz
 
-local LOGIC_MSG_BEGIN = 20000
-
 local CMD = {}
 util.timer_wrap(CMD)
 game.iter("init_module")
@@ -74,6 +72,7 @@ end
 
 function CMD.notify(msg, info)
     notify.add(msg, info)
+    notify.send()
 end
 
 function CMD.get_user()

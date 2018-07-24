@@ -54,7 +54,7 @@ local function check_account(info)
                 id = accountid,
                 password = info.password,
             }
-            skynet.call(account_db, "lua", "safe_insert", account)
+            skynet.send(account_db, "lua", "safe_insert", account)
             return true, account
         else
             return false, nil, "account not exist"
@@ -90,7 +90,7 @@ end
 function CMD.gen_account(info)
     local new, account, errmsg = cs(check_account, info)
     if new then
-		skynet.call(status_db, "lua", "update", {key=status_key}, {["$set"]={accountid=status.accountid}}, true)
+		skynet.send(status_db, "lua", "update", {key=status_key}, {["$set"]={accountid=status.accountid}}, true)
     end
     return new, account, errmsg
 end
@@ -102,7 +102,7 @@ local function gen_func(k, v)
         local id = value * 100 + k * 10 + config.serverid
         value = value + 1
         status[key] = value
-        skynet.call(status_db, "lua", "update", {key=status_key}, {["$set"]={[key]=value}}, true)
+        skynet.send(status_db, "lua", "update", {key=status_key}, {["$set"]={[key]=value}}, true)
         return id
     end
 end
@@ -116,6 +116,10 @@ end
 skynet.start(function()
 	skynet.dispatch("lua", function(session, source, command, ...)
 		local f = assert(CMD[command])
-        skynet.retpack(f(...))
+        if session == 0 then
+            f(...)
+        else
+            skynet.retpack(f(...))
+        end
 	end)
 end)

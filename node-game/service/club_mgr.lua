@@ -187,7 +187,7 @@ function CMD.open()
         end
         r.apply = a
         local club = skynet.newservice("club")
-        skynet.call(club, "lua", "open", r, extra, rand.randi(1, 300))
+        skynet.send(club, "lua", "open", r, extra, rand.randi(1, 300))
         local c = {
             id = r.id,
             key = r.key,
@@ -195,7 +195,7 @@ function CMD.open()
         }
         id_club[r.id] = c
         key_club[r.key] = c
-        skynet.call(club_role, "lua", "batch_add", m, r.id, club)
+        skynet.send(club_role, "lua", "batch_add", m, r.id, club)
     end, nil, {_id=false})
     local server_mgr = skynet.queryservice("server_mgr")
     server_list = skynet.call(server_mgr, "lua", "get_all")

@@ -23,7 +23,7 @@ local role_room = {}
 local cs = queue() 
 
 local function save()
-    skynet.call(club_db, "lua", "update", {id=club.id}, club, true)
+    skynet.send(club_db, "lua", "update", {id=club.id}, club, true)
 end
 
 local function delay_save()
@@ -83,9 +83,9 @@ function CMD.disband(roleid)
                 if v.id ~= roleid then
                     local agent = skynet.call(role_mgr, "lua", "get", v.id)
                     if agent then
-                        skynet.call(agent, "lua", "action", "club", "leave", club.id)
+                        skynet.send(agent, "lua", "action", "club", "leave", club.id)
                     else
-                        skynet.call(club_role, "lua", "del", roleid, club.id)
+                        skynet.send(club_role, "lua", "del", roleid, club.id)
                     end
                 end
             end
@@ -96,7 +96,7 @@ function CMD.disband(roleid)
             room_list = {}
             role_room = {}
             del_timer()
-            skynet.call(club_db, "lua", "delete", {id=id})
+            skynet.send(club_db, "lua", "delete", {id=id})
             return room_card
         else
             skynet.error(string.format("Role %d disband club %d error.", roleid, club.id))
@@ -344,7 +344,7 @@ function MSG.accept(adminid, roleid)
         if skynet.call(club_role, "lua", "count", roleid) >= base.MAX_CLUB then
             error{code = error_code.CLUB_LIMIT}
         else
-            skynet.call(club_role, "lua", "add", roleid, club.id, skynet.self())
+            skynet.send(club_role, "lua", "add", roleid, club.id, skynet.self())
             a.time = floor(skynet.time())
             a.pos = base.CLUB_POS_NONE
             a.online = false
@@ -399,7 +399,7 @@ function MSG.accept_all(adminid)
                 end
             else
                 if skynet.call(club_role, "lua", "count", v.id) < base.MAX_CLUB then
-                    skynet.call(club_role, "lua", "add", v.id, club.id, skynet.self())
+                    skynet.send(club_role, "lua", "add", v.id, club.id, skynet.self())
                     v.time = now
                     v.pos = base.CLUB_POS_NONE
                     v.online = false
@@ -502,9 +502,9 @@ function MSG.remove_member(adminid, roleid)
     end
     local agent = skynet.call(role_mgr, "lua", "get", roleid)
     if agent then
-        skynet.call(agent, "lua", "action", "club", "leave", club.id)
+        skynet.send(agent, "lua", "action", "club", "leave", club.id)
     else
-        skynet.call(club_role, "lua", "del", roleid, club.id)
+        skynet.send(club_role, "lua", "del", roleid, club.id)
     end
     extra.member[roleid] = nil
     club.member[tostring(roleid)] = nil
@@ -538,7 +538,7 @@ function MSG.promote(adminid, roleid)
     end
     local agent = skynet.call(role_mgr, "lua", "get", roleid)
     if agent then
-        skynet.call(agent, "lua", "action", "club", "promote", club.id)
+        skynet.send(agent, "lua", "action", "club", "promote", club.id)
     end
     role.pos = base.CLUB_POS_ADMIN
     extra.admin_count = extra.admin_count + 1
@@ -566,7 +566,7 @@ function MSG.demote(adminid, roleid)
     end
     local agent = skynet.call(role_mgr, "lua", "get", roleid)
     if agent then
-        skynet.call(agent, "lua", "action", "club", "demote", club.id)
+        skynet.send(agent, "lua", "action", "club", "demote", club.id)
     end
     role.pos = base.CLUB_POS_NONE
     extra.admin_count = extra.admin_count - 1

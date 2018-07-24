@@ -222,7 +222,7 @@ function server.start(conf)
 		if u.index >= expired_number * 2 then
 			local max = 0
 			local response = u.response
-			for k,p in pairs(response) do
+			for k, p in pairs(response) do
 				if p[1] == nil then
 					-- request complete, check expired
 					if p[4] < expired_number then
@@ -254,7 +254,7 @@ function server.start(conf)
 				tmp = tmp .. string.pack(">BI4", 1, session)
                 local p = u.response[session]
                 p[2] = string.pack(">s2", tmp)
-                local fd = p[1]
+                local fd = u.fd
                 if connection[fd] then
                     socketdriver.send(fd, p[2])
                 end
@@ -268,7 +268,7 @@ function server.start(conf)
 	local function do_request(fd, message)
 		local u = assert(connection[fd], "invalid fd")
 		local session = string.unpack(">I4", message, -4)
-		message = message:sub(1,-5)
+		message = message:sub(1, -5)
 		local p = u.response[session]
 		if p then
 			-- session can be reuse in the same connection
@@ -286,20 +286,16 @@ function server.start(conf)
 
 		if p == nil then
 			p = { fd }
-			u.response[session] = p
-			local ok, result = pcall(conf.request_handler, u.username, message)
-			-- NOTICE: YIELD here, socket may close.
-			-- result = result or ""
-			if not ok then
-				skynet.error(result)
-				-- result = string.pack(">BI4", 0, session)
-			-- else
-				-- result = result .. string.pack(">BI4", 1, session)
-			end
-
-			-- p[2] = string.pack(">s2",result)
 			p[3] = u.version
 			p[4] = u.index
+            u.index = u.index + 1
+			u.response[session] = p
+            u.unresponse[#u.unresponse+1] = session
+			local ok, result = pcall(conf.request_handler, u.username, message)
+			-- NOTICE: YIELD here, socket may close.
+			if not ok then
+				skynet.error(result)
+			end
 		else
 			-- update version/index, change return fd.
 			-- resend response.
@@ -310,15 +306,15 @@ function server.start(conf)
 				-- already request, but response is not ready
 				return
 			end
+            u.index = u.index + 1
+            -- the return fd is p[1] (fd may change by multi request) check connect
+            fd = p[1]
+            if connection[fd] then
+            	socketdriver.send(fd, p[2])
+            end
+            p[1] = nil
+            retire_response(u)
 		end
-		u.index = u.index + 1
-		-- the return fd is p[1] (fd may change by multi request) check connect
-		-- fd = p[1]
-		-- if connection[fd] then
-		-- 	socketdriver.send(fd, p[2])
-		-- end
-		-- p[1] = nil
-		-- retire_response(u)
 	end
 
 	local function request(fd, msg, sz)

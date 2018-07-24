@@ -58,9 +58,9 @@ local function roulette_calculate(id, roulette_idx) --抽奖计算 id,条件cond
         if (count<max) then
             local field = "roulette_r." .. roulette_idx
             if count == (max-1) then --抽奖数也加一
-                skynet.call(invite_info_db, "lua", "update", {id=id}, {["$inc"]={roulette_cur=1,[field]=1},["$set"]={roulette_date=os.time()}}, false)
+                skynet.send(invite_info_db, "lua", "update", {id=id}, {["$inc"]={roulette_cur=1,[field]=1},["$set"]={roulette_date=os.time()}}, false)
             else
-                skynet.call(invite_info_db, "lua", "update", {id=id}, {["$inc"]={[field]=1},["$set"]={roulette_date=os.time()}}, false)
+                skynet.send(invite_info_db, "lua", "update", {id=id}, {["$inc"]={[field]=1},["$set"]={roulette_date=os.time()}}, false)
             end
         end
     end    
@@ -120,7 +120,7 @@ local function approval_money(uid,unionid,type,fee_fen)
             -- if (ret) then
                 if content.ret == "OK" then
                     if type ~= approval_type_roulette then --非抽奖
-                        skynet.call(invite_info_db, "lua", "update", {id=uid}, {["$set"]={[type]=base.ACTIVITY_STATUS.PROGRESSING}}, false)
+                        skynet.send(invite_info_db, "lua", "update", {id=uid}, {["$set"]={[type]=base.ACTIVITY_STATUS.PROGRESSING}}, false)
                     end
                 else
                     -- error{code = error_code.INTERNAL_ERROR}
@@ -157,7 +157,7 @@ function CMD.get_invite_info(info) ---- 返回非空对象
             roulette_r={}, -- 抽奖条件记录[index]=value patterm:[[1]=8,[2]=10,[3]=6]
             -- roulette_date=nil,--抽奖日期
         }
-        skynet.call(invite_info_db, "lua", "safe_insert", invite_info)
+        skynet.send(invite_info_db, "lua", "safe_insert", invite_info)
     end
 
     if (not invite_info.mine_done) 
@@ -165,7 +165,7 @@ function CMD.get_invite_info(info) ---- 返回非空对象
         or invite_info.mine_done == base.ACTIVITY_STATUS.UNDO then -- judge  expired or not
         if info.create_time and is_activity_my_play_expired(info.create_time) then
             invite_info.mine_done=base.ACTIVITY_STATUS.MISS
-            skynet.call(invite_info_db, "lua", "update", {id=info.id},
+            skynet.send(invite_info_db, "lua", "update", {id=info.id},
                 {["$set"]={mine_done=base.ACTIVITY_STATUS.MISS}}, false)            
         end
     end 
@@ -174,7 +174,7 @@ function CMD.get_invite_info(info) ---- 返回非空对象
         if invite_info.roulette_cur>0 or invite_info.roulette_r~=nil then
             invite_info.roulette_cur =0
             invite_info.roulette_r = nil
-            skynet.call(invite_info_db, "lua", "update", {id=info.id},
+            skynet.send(invite_info_db, "lua", "update", {id=info.id},
                 {["$unset"]={roulette_r=1},["$set"]={roulette_cur=0,roulette_date=os.time()}}, false)
         end
     end    
@@ -212,7 +212,7 @@ function CMD.roulette_reward(info,msg)
 
         end
 
-        skynet.call(invite_info_db, "lua", "update", {id=info.id}, {["$inc"]={roulette_cur=-1,roulette_total=1},["$set"]={roulette_date=os.time()}}, false)
+        skynet.send(invite_info_db, "lua", "update", {id=info.id}, {["$inc"]={roulette_cur=-1,roulette_total=1},["$set"]={roulette_date=os.time()}}, false)
 
         return p
     end
@@ -238,7 +238,7 @@ function CMD.reward_money(info, msg)
             or mine_done == base.ACTIVITY_STATUS.UNDO then
 
             if mine_play>= define.activity_maxtrix.done_count then 
-                -- skynet.call(invite_info_db, "lua", "update", {id=info.id}, {["$set"]={mine_done=base.ACTIVITY_STATUS.PROGRESSING}}, false)
+                -- skynet.send(invite_info_db, "lua", "update", {id=info.id}, {["$set"]={mine_done=base.ACTIVITY_STATUS.PROGRESSING}}, false)
                 --随机红包
                 local idx = probabilityRandom(define.activity_maxtrix.play_probability)
                 -- skynet.error(string.format("the %d prize is roulette", idx))
@@ -255,7 +255,7 @@ function CMD.reward_money(info, msg)
             if award_num<=invite_info.invite_count and mine_play>= define.activity_maxtrix.done_count*award_num then                
                 local field = "reward_invite_r." .. award_num
                 type = field
-                -- skynet.call(invite_info_db, "lua", "update", {id=info.id}, {["$set"]={[field]=base.ACTIVITY_STATUS.PROGRESSING}}, false)
+                -- skynet.send(invite_info_db, "lua", "update", {id=info.id}, {["$set"]={[field]=base.ACTIVITY_STATUS.PROGRESSING}}, false)
                 yuan = define.activity_maxtrix.money_invite[award_num]            
             end
         end 
@@ -269,7 +269,7 @@ function CMD.reward_money(info, msg)
             if (award_num<=invite_info.pay_total) then
                 local field = "reward_pay_r." .. award_num
                 type = field
-                -- skynet.call(invite_info_db, "lua", "update", {id=info.id}, {["$set"]={[field]=base.ACTIVITY_STATUS.PROGRESSING}}, false)
+                -- skynet.send(invite_info_db, "lua", "update", {id=info.id}, {["$set"]={[field]=base.ACTIVITY_STATUS.PROGRESSING}}, false)
                 yuan = define.activity_maxtrix.money_pay[award_num]                    
             end
         end        
@@ -296,7 +296,7 @@ function CMD.get_invite_user_detail(id)
 
             invited_date = os.time(), --邀请时间
         }
-        skynet.call(invite_user_detail_db, "lua", "safe_insert", detail_info)
+        skynet.send(invite_user_detail_db, "lua", "safe_insert", detail_info)
     end
     return detail_info
 end
@@ -305,7 +305,7 @@ function CMD.approval(id, tf) -- 审核结果
     if (id and tf) then
         if tf ~= approval_type_roulette then --非抽奖类
             -- 设置自己奖励为完成
-            skynet.call(invite_info_db, "lua", "update", {id=id}, {["$set"]={[tf]=base.ACTIVITY_STATUS.FINISH}}, false)
+            skynet.send(invite_info_db, "lua", "update", {id=id}, {["$set"]={[tf]=base.ACTIVITY_STATUS.FINISH}}, false)
         end
     end
     return 1
@@ -323,11 +323,11 @@ function CMD.play(roles) --统计邀请者累计人数，自己玩的局数
             if count == (define.activity_maxtrix.done_count -1) then --有效完成局数
                 --邀请者累计有效用户+1, 并获得相关钻石
                 if (belong_id) then 
-                    skynet.call(invite_info_db, "lua", "update", {id=belong_id}, {["$inc"]={invite_count=1,award_diamond=define.activity_maxtrix.invite_succ_diamond}}, false)
+                    skynet.send(invite_info_db, "lua", "update", {id=belong_id}, {["$inc"]={invite_count=1,award_diamond=define.activity_maxtrix.invite_succ_diamond}}, false)
                 end
             end
             -- 自己完成数+1
-            skynet.call(invite_user_detail_db, "lua", "update", {id=id}, {["$inc"]={play_total_count=1}}, false)
+            skynet.send(invite_user_detail_db, "lua", "update", {id=id}, {["$inc"]={play_total_count=1}}, false)
 
             --当天的完成抽奖数统计
             roulette_calculate(id, 1) -- 完成局数索引为1
@@ -345,12 +345,12 @@ function CMD.pay(roles, fee_fen) --统计邀请者累计支付，自己的支付
 
             local user_detail = CMD.get_invite_user_detail(id)
             local belong_id = user_detail.belong_id
-            skynet.call(invite_user_detail_db, "lua", "update", {id=id}, {["$inc"]={pay_money_count=yuan}}, false)
+            skynet.send(invite_user_detail_db, "lua", "update", {id=id}, {["$inc"]={pay_money_count=yuan}}, false)
 
             if (belong_id and belong_id>0) then --邀请者累计
                 -- local invite_info = CMD.get_invite_info({id=belong_id})
                 -- if (invite_info) then
-                    skynet.call(invite_info_db, "lua", "update", {id=belong_id}, {["$inc"]={pay_total=yuan}}, false)
+                    skynet.send(invite_info_db, "lua", "update", {id=belong_id}, {["$inc"]={pay_total=yuan}}, false)
                 -- end
             end
         end
@@ -419,19 +419,19 @@ function CMD.reg_invite_user(user) --新用户,关联邀请人
 
             invited_date = os.time(), --邀请时间
         }
-        skynet.call(invite_user_detail_db, "lua", "safe_insert", detail_info)
+        skynet.send(invite_user_detail_db, "lua", "safe_insert", detail_info)
     end
 end
 
 function CMD.wx_binding(unionid) --微信公众号绑定
     local user = skynet.call(user_db, "lua", "findOne", {unionid=unionid},{id=1})
     if (user and user.id) then
-        skynet.call(invite_info_db, "lua", "update", {id=user.id},
+        skynet.send(invite_info_db, "lua", "update", {id=user.id},
         {["$set"]={bind_gzh=true}}, false)
 
         local agent = skynet.call(role_mgr, "lua", "get", user.id)
         if agent then --如果在线,通知
-            skynet.call(agent, "lua", "action", "role", "bind_gzh", true, unionid)
+            skynet.send(agent, "lua", "action", "role", "bind_gzh", true, unionid)
         end
     end
     return 1
