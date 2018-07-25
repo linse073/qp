@@ -1,0 +1,101 @@
+.user_info {
+    account 0 : string
+    id 1 : integer
+    sex 2 : integer
+    create_time 3 : integer
+    room_card 4 : integer
+    nick_name 5 : string
+    head_img 6 : string
+    ip 7 : string
+    day_card 8 : boolean
+    last_login_time 9 : integer
+    login_time 10 : integer
+    invite_code 11 : integer
+	first_charge 12 : *integer
+    club 13 : *club_info
+}
+
+.other_all {
+    other 0 : *user_info
+}
+
+.info_all {
+    user 0 : user_info
+    chess 1 : string
+    start_time 2 : integer
+    code 3 : integer
+}
+
+.update_user {
+    user 0 : user_info
+    iap_index 1 : integer
+    roulette_index 2 : integer
+}
+
+.heart_beat {
+    time 0 : integer
+}
+
+.heart_beat_response {
+    time 0 : integer
+    server_time 1 : integer
+}
+
+.error_code {
+    code 0 : integer
+}
+
+.logout {
+    id 0 : integer
+}
+
+.enter_game {
+    number 0 : integer
+}
+
+.iap {
+    index 0 : integer
+    receipt 1 : string
+    sandbox 2 : boolean
+}
+
+.invite_code {
+    url 0 : string
+    code 1 : integer
+}
+
+.charge {
+    num 0 : integer
+    url 1 : string
+}
+
+.charge_ret {
+    url 0 : string
+}
+
+.check_agent {
+}
+
+.check_agent_ret {
+    agent 0 : boolean
+}
+
+.get_role {
+    id 0 : integer
+}
+
+.role_info {
+    info 0 : user_info
+}
+
+.notify_info {
+}
+
+.get_offline {
+}
+
+.update_day {
+}
+
+.share {
+}

@@ -12,18 +12,27 @@ local function search(dir)
 			print(string.format("read file: %s", f))
 			local fd = io.open(f, "r")
 			local data = fd:read "*a"
-			content = content .. data
+			content = content .. data .. "\n\n"
 			fd:close()
 		end
 	end
 	return content
 end
-local spb_data, proto = parser.parse_1(search(dir .. "/proto"))
+
+local spb_content = search(dir .. "/proto")
+local content_file = dir .. "/proto-tmp/proto.sproto"
+local content_fd = io.open(content_file, "w")
+content_fd:write(spb_content)
+content_fd:close()
+print(string.format("wirte file: %s", content_file))
+
+local spb_data, proto = parser.parse_1(spb_content)
 local spb_file = dir .. "/proto-gen/proto.spb"
 local spb_fd = io.open(spb_file, "w")
 spb_fd:write(spb_data)
 spb_fd:close()
 print(string.format("wirte file: %s", spb_file))
+
 package.path = package.path .. dir .. "/proto-gen/?.lua"
 local ok, p = pcall(require, "proto")
 local name_msg

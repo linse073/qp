@@ -1,0 +1,70 @@
+.record_info {
+    .chess_action {
+        index 0 : integer
+        op 1 : integer
+        card 2 : integer
+        out_index 3 : integer
+        deal_card 4 : integer
+    }
+
+    id 0 : integer
+    time 1 : integer
+    info 2 : chess_info
+    user 3 : *chess_user
+    aciton 4 : *chess_action
+    club 5 : integer
+}
+
+.chess_record {
+    .record_detail {
+        id 0 : integer
+        time 1 : integer
+        show_card 2 : *show_card
+        banker 3 : integer
+    }
+
+    id 0 : integer
+    time 1 : integer
+    info 2 : chess_info
+    user 3 : *chess_user
+    record 4 : *record_detail
+    read 5 : boolean
+    winner 6 : integer
+    club 7 : integer
+}
+
+.record_all {
+    record 0 : *chess_record
+}
+
+.get_club_user_record {
+    id 0 : integer
+}
+
+.club_user_record {
+    id 0 : integer
+    record 1 : *chess_record
+}
+
+.get_club_record {
+    id 0 : integer
+    begin_time 1 : integer
+    end_time 2 : integer
+}
+
+.club_record {
+    id 0 : integer
+    record 1 : *chess_record
+}
+
+.read_club_record {
+    id 0 : integer
+    read 2 : boolean
+}
+
+.review_record {
+    id 0 : integer
+}
+
+.get_record {
+}

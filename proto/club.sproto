@@ -1,0 +1,183 @@
+.club_info {
+    id 0 : integer
+    name 1 : string
+    time 2 : integer
+    chief_id 3 : integer
+    chief 4 : string
+    member_count 5 : integer
+    pos 6 : integer
+    del 7 : boolean
+}
+
+.club_member {
+    id 0 : integer
+    name 1 : string
+    head_img 2 : string
+    pos 3 : integer
+    time 4 : integer
+    sex 5 : integer
+    del 6 : boolean
+    online 7 : boolean
+}
+
+.club_member_list {
+    id 0 : integer
+    list 1 : *club_member
+}
+
+.update_club_member {
+    id 0 : integer
+    member 1 : club_member
+}
+
+.club_apply {
+    id 0 : integer
+    name 1 : string
+    head_img 2 : string
+    time 3 : integer
+    sex 4 : integer
+    del 5 : boolean
+}
+
+.club_apply_list {
+    id 0 : integer
+    list 1 : *club_apply
+}
+
+.update_club_apply {
+    id 0 : integer
+    apply 1 : club_apply
+}
+
+.room_user {
+    id 0 : integer
+    name 1 : string
+    head_img 2 : string
+    sex 3 : integer
+}
+
+.room_info {
+    name 0 : string
+    number 1 : integer
+    rule 2 : string
+    user 3 : integer
+    role 4 : *room_user
+    time 5 : integer
+}
+
+.room_list {
+    id 0 : integer
+    name 1 : string
+    member_count 2 : integer
+    online_count 3 : integer
+    quick_game 4 : string
+    quick_rule 5 : string
+    room 6 : *room_info
+}
+
+.club_all {
+    id 0 : integer
+    name 1 : string
+    chief_id 2 : integer
+    chief 3 : string
+    time 4 : integer
+    room_card 5 : integer
+    quick_game 6 : string
+    quick_rule 7 : string
+    member_count 8 : integer
+    online_count 9 : integer
+    day_card 10 : integer
+    notify_card 11 : integer
+    admin 12 : *club_member
+}
+
+.query_club {
+    id 0 : integer
+}
+
+.found_club {
+    name 0 : string
+}
+
+.apply_club {
+    id 0 : integer
+}
+
+.accept_club_apply {
+    id 0 : integer
+    roleid 1 : integer
+}
+
+.refuse_club_apply {
+    id 0 : integer
+    roleid 1 : integer
+}
+
+.query_club_apply {
+    id 0 : integer
+}
+
+.query_club_member {
+    id 0 : integer
+}
+
+.club_top {
+    id 0 : integer
+}
+
+.club_top_ret {
+    id 0 : integer
+}
+
+.remove_club_member {
+    id 0 : integer
+    roleid 1 : integer
+}
+
+.charge_club {
+    id 0 : integer
+    room_card 1 : integer
+}
+
+.config_club {
+    id 0 : integer
+    name 1 : string
+    day_card 2 : integer
+    notify_card 3 : integer
+}
+
+.promote_club_member {
+    id 0 : integer
+    roleid 1 : integer
+}
+
+.demote_club_member {
+    id 0 : integer
+    roleid 1 : integer
+}
+
+.query_club_room {
+    id 0 : integer
+}
+
+.config_quick_start {
+    id 0 : integer
+    game 1 : string
+    rule 2 : string
+}
+
+.accept_all_club_apply {
+    id 0 : integer
+}
+
+.refuse_all_club_apply {
+    id 0 : integer
+}
+
+.leave_club {
+    id 0 : integer
+}
+
+.query_club_all {
+    id 0 : integer
+}

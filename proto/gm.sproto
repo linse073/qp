@@ -1,0 +1,30 @@
+.dymj_card {
+    card 0 : *integer
+}
+
+.jdmj_card {
+    card 0 : *integer
+}
+
+.jd13_card {
+    card 0 : *integer
+}
+
+.dy13_card {
+    card 0 : *integer
+}
+
+.dy4_card {
+    card 0 : *integer
+}
+
+.jhbj_card {
+    card 0 : *integer
+}
+
+.add_room_card {
+    num 0 : integer
+}
+
+.test_update_day {
+}

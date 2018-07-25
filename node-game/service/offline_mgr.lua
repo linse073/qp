@@ -14,14 +14,14 @@ local CMD = {}
 local function add(id, func, ...)
     local agent = skynet.call(role_mgr, "lua", "get", id)
     if agent then
-        skynet.send(agent, "lua", "action", func, true, ...)
+        skynet.send(agent, "lua", "action", func, ...)
     else
-        skynet.send(offline_db, "lua", "update", {id=id}, {["$push"]={data={func, false, ...}}}, true)
+        skynet.send(offline_db, "lua", "update", {id=id}, {["$push"]={data={func, ...}}}, true)
     end
 end
 
 local function offline(id, func, ...)
-    skynet.send(offline_db, "lua", "update", {id=id}, {["$push"]={data={func, false, ...}}}, true)
+    skynet.send(offline_db, "lua", "update", {id=id}, {["$push"]={data={func, ...}}}, true)
 end
 
 local function get(id)

@@ -83,8 +83,8 @@ function CMD.get_info()
     return game.data.info
 end
 
-function CMD.action(module, func, ...)
-	return game.one(module, func, ...)
+function CMD.action(func, ...)
+	return game.one(func, ...)
 end
 
 skynet.start(function()
