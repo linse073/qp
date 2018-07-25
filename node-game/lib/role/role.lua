@@ -10,7 +10,6 @@ local assert = assert
 local string = string
 local floor = math.floor
 local tonumber = tonumber
-local tostring = tostring
 local table = table
 
 local data
@@ -53,6 +52,21 @@ local function sort_club(l, r)
     return l.index < r.index
 end
 
+local function repair(user)
+    if user.day_card == nil then
+        user.day_card = false
+    end
+    if not user.invite_code then
+        user.invite_code = 0
+    end
+    if not user.first_charge then
+        user.first_charge = {}
+    end
+    if not user.club then
+        user.club = {}
+    end
+end
+
 local function get_user()
     if not data.user then
         if not data.sex or data.sex == 0 then
@@ -61,6 +75,7 @@ local function get_user()
         local id = data.id
 		local user = skynet.call(user_db, "lua", "findOne", {id=id})
 		if user then
+            repair(user)
 			user.nick_name = data.nick_name
 			user.head_img = data.head_img
 			user.ip = data.ip
@@ -68,6 +83,11 @@ local function get_user()
             user.openid = data.openid
             user.unionid = data.unionid
 			data.user = user
+            local first_charge = {}
+            for k, v in ipairs(user.first_charge) do
+                first_charge[v] = true
+            end
+            data.first_charge = first_charge
 			data.info = {
 				account = user.account,
 				id = id,
@@ -141,6 +161,7 @@ local function get_user()
 			}
 			skynet.send(user_db, "lua", "safe_insert", user)
 			data.user = user
+            data.first_charge = {}
 			local info = {
 				account = user.account,
 				id = user.id,
@@ -262,22 +283,6 @@ function role.btk(addr)
     end
 end
 
-function role.repair(now)
-	local user = data.user
-    if user.day_card == nil then
-        user.day_card = false
-    end
-    if not user.invite_code then
-        user.invite_code = 0
-    end
-    if not user.first_charge then
-        user.first_charge = {}
-    end
-    if not user.club then
-        user.club = {}
-    end
-end
-
 function role.add_room_card(inform, num)
     local user = data.user
     user.room_card = user.room_card + num
@@ -296,7 +301,7 @@ function role.unlink(inform)
     end
 end
 
-function role.charge(p, inform, ret)
+function role.charge(inform, ret)
     if ret.retCode == "SUCCESS" then
         local trade_id = tonumber(ret.tradeNO)
         local r = skynet.call(charge_log_db, "lua", "findAndModify", 
@@ -305,12 +310,12 @@ function role.charge(p, inform, ret)
             local cashFee = r.value.num
             local user = data.user
             local num
+            local p = {}
             if user.invite_code > 0 then
                 num = define.shop_item_2[cashFee]
-                local first_charge = user.first_charge
-                local feeStr = tostring(cashFee)
-                if not first_charge[feeStr] then
-                    first_charge[feeStr] = true
+                if not data.first_charge[cashFee] then
+                    data.first_charge[cashFee] = true
+                    user.first_charge[#user.first_charge+1] = cashFee
                     p.first_charge = {cashFee}
                     if cashFee == 600 then
                         num = num * 2
@@ -319,7 +324,11 @@ function role.charge(p, inform, ret)
             else
                 num = define.shop_item[cashFee]
             end
-            role.add_room_card(p, inform, num)
+            user.room_card = user.room_card + num
+            p.room_card = user.room_card
+            if inform then
+                notify.add("user_info", p)
+            end
         else
             skynet.error(string.format("No unfinished trade: %d.", trade_id))
         end
