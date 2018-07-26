@@ -6,7 +6,6 @@
     chief 4 : string
     member_count 5 : integer
     pos 6 : integer
-    del 7 : boolean
 }
 
 .club_member {

@@ -84,7 +84,8 @@ function CMD.get_info()
 end
 
 function CMD.action(func, ...)
-	return game.one(func, ...)
+    return role[func](true, ...)
+	-- return game.one(func, ...)
 end
 
 skynet.start(function()

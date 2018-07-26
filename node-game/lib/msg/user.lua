@@ -28,7 +28,6 @@ local data
 local update_user = util.update_user
 local error_code
 local base
-local cz
 local rand
 local define
 local game_day
@@ -58,7 +57,6 @@ local debug = (skynet.getenv("debug")=="true")
 skynet.init(function()
     error_code = share.error_code
     base = share.base
-    cz = share.cz
     rand = share.rand
     define = share.define
     game_day = func.game_day
@@ -125,59 +123,58 @@ local function syn_info(now)
         skynet.error(string.format("synchronize user info %d fail.", user.id))
     end
 end
+local function proc_offline(func, ...)
+    role[func](false, ...)
+end
 function proc.enter_game(msg)
-	cz.start()
-    if data.enter then
-        error{code = error_code.ROLE_ALREADY_ENTER}
-    end
 	local user = data.user
     local now = floor(skynet.time())
-    role.repair(user, now)
     user.last_login_time = user.login_time
     user.login_time = now
-	game.iter("enter")
     if user.logout_time > 0 then
         local od = game_day(user.logout_time)
         local nd = game_day(now)
         if od ~= nd then
-            update_day(user, od, nd)
+            role.update_day_impl(od, nd)
         end
     end
-    local ret = {user=user}
     local om = data.offline
     if om then
-        local p = update_user()
         for k, v in ipairs(om) do
-            table.insert(v, 3, p)
-            game.one(table.unpack(v))
+            proc_offline(table.unpack(v))
         end
         data.offline = nil
     end
-    local pack = game.iter_ret("pack_all")
-    for _, v in ipairs(pack) do
-        ret[v[1]] = v[2]
-    end
-    local first_charge = {}
-    -- NOTICE: the type of mongo map key is string
-    for k, v in pairs(user.first_charge) do
-        first_charge[#first_charge+1] = tonumber(k)
-    end
-    ret.first_charge = first_charge
-    ret.club = data.club_info
+    local ret = {
+        account = user.account,
+        id = user.id,
+        sex = user.sex,
+        create_time = user.create_time,
+        room_card = user.room_card,
+        nick_name = user.nick_name,
+        head_img = user.head_img,
+        ip = user.ip,
+        day_card = user.day_card,
+        last_login_time = user.last_login_time,
+        login_time = user.login_time,
+        invite_code = user.invite_code,
+        first_charge = user.first_charge,
+        club = data.club_info,
+    }
     local chess_table = skynet.call(chess_mgr, "lua", "get", user.id)
-    local code
+    local code, chess
     if chess_table then
         data.chess_table = chess_table
-        ret.chess = skynet.call(chess_table, "lua", "pack", user.id, user.ip, skynet.self())
+        chess = skynet.call(chess_table, "lua", "pack", user.id, user.ip, skynet.self(), msg.location)
     elseif msg.number then
         chess_table = skynet.call(table_mgr, "lua", "get", msg.number)
         if chess_table then
-            local rmsg, info = skynet.call(chess_table, "lua", "join", data.info, user.room_card, skynet.self())
-            if rmsg == "update_user" then
+            local ok, info = skynet.call(chess_table, "lua", "join_pack", data.info, user.room_card, skynet.self(), msg.location)
+            if ok then
                 data.chess_table = chess_table
-                ret.chess = info.update.chess
-            elseif rmsg == "error_code" then
-                code = info.code
+                chess = info
+            else
+                code = info
             end
         else
             code = error_code.ROOM_CLOSE
@@ -185,13 +182,11 @@ function proc.enter_game(msg)
     end
     timer.add_routine("save_role", role.save_routine, 300)
     timer.add_day_routine("update_day", role.update_day)
-    skynet.call(role_mgr, "lua", "enter", data.info, skynet.self())
+    skynet.send(role_mgr, "lua", "enter", data.info, skynet.self())
     if data.login_type == base.LOGIN_WEIXIN and not debug then
         skynet.fork(syn_info, now)
     end
-    data.enter = true
-    cz.finish()
-    return "info_all", {user=ret, start_time=start_utc_time, code=code}
+    notify.add("info_all", {user=ret, chess=chess, start_time=start_utc_time, code=code})
 end
 
 function proc.get_offline(msg)
@@ -225,7 +220,6 @@ function proc.new_chess(msg)
     if not config then
         error{code = error_code.NO_CHESS}
     end
-    cz.start()
     local data = game.data
     if data.chess_table then
         error{code = error_code.ALREAD_IN_CHESS}
@@ -275,7 +269,6 @@ function proc.new_chess(msg)
     else
         skynet.call(table_mgr, "lua", "free", chess_table)
     end
-    cz.finish()
     return rmsg, info
 end
 
@@ -284,7 +277,6 @@ function proc.join(msg)
     if not chess_table then
         error{code = error_code.ERROR_CHESS_NUMBER}
     end
-    cz.start()
     local data = game.data
     if data.chess_table then
         error{code = error_code.ALREAD_IN_CHESS}
@@ -295,7 +287,6 @@ function proc.join(msg)
     if rmsg == "update_user" then
         data.chess_table = chess_table
     end
-    cz.finish()
     return rmsg, info
 end
 
@@ -468,12 +459,10 @@ function proc.iap(msg)
     local content = cjson.decode(content)
     if content.status == 0 then
         local receipt = content.receipt
-        cz.start()
         local has = skynet.call(iap_log_db, "lua", "findOne", {transaction_id=receipt.transaction_id})
         if not has then
             skynet.call(iap_log_db, "lua", "safe_insert", receipt)
         end
-        cz.finish()
         if has then
             return "update_user", {iap_index=msg.index}
         else

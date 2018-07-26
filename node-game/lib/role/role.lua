@@ -215,13 +215,13 @@ function role.finish()
 	data = nil
 end
 
-local function update_day(od, nd)
+function role.update_day_impl(od, nd)
 	local user = data.user
     user.day_card = false
 end
 
 function role.update_day(od, nd)
-    update_day(od, nd)
+    role.update_day_impl(od, nd)
     notify.add("update_day", {})
 end
 
